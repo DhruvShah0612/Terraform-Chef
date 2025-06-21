@@ -328,6 +328,81 @@ http://<EC2_PUBLIC_IP>
 ```
 ✅ You should see the Apache2 Ubuntu Default Page.
 
+# 🧪 Task 5: Run a Recipe Using chef-client in Local Mode (`--local-mode` / `-z`)
+## 📄 create file `install_local_mode.sh`
+```bash
+#!/bin/bash -xe
+
+# Update and install required packages
+apt update -y
+apt install -y curl unzip
+
+# Install Chef Infra Client
+curl -L https://omnitruck.chef.io/install.sh | bash
+
+# Create cookbook directory and recipe
+mkdir -p /root/cookbooks/local_mode/recipes
+
+# Recipe: Create a simple file
+cat <<EOF > /root/cookbooks/local_mode/recipes/hello_file.rb
+file '/root/hello_from_chef.txt' do
+  content 'Hello, Chef is working in local mode!'
+  owner 'root'
+  group 'root'
+  mode '0644'
+  action :create
+end
+EOF
+
+# Metadata for the cookbook
+cat <<EOF > /root/cookbooks/local_mode/metadata.rb
+name 'local_mode'
+maintainer 'Dhruv Shah'
+license 'All Rights Reserved'
+description 'Run recipe in chef local mode'
+version '0.1.0'
+EOF
+
+# Chef solo configuration
+cat <<EOF > /root/solo.rb
+cookbook_path ['/root/cookbooks']
+EOF
+
+# Execute the recipe with chef-client in local mode
+chef-client -z -c /root/solo.rb -o 'local_mode::hello_file' --chef-license accept
+```
+### 📦 Step 2: add this `main.tf`
+```bash
+resource "aws_instance" "local_mode_server" {
+  ami                         = "ami-0f58b397bc5c1f2e8" # Ubuntu 20.04
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.deployer.key_name
+  vpc_security_group_ids      = [aws_security_group.apache_sg.id]
+  associate_public_ip_address = true
+
+  user_data = file("install_local_mode.sh")
+
+  tags = {
+    Name = "Chef-LocalMode-Server"
+  }
+}
+```
+```bash
+terraform apply -auto-approve
+```
+🧪 Verify on EC2
+```bash
+ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
+```
+Check if the file was created by the Chef recipe:
+```bash
+sudo cat /root/hello_from_chef.txt
+```
+Output:
+```pgsql
+Hello, Chef is working in local mode!
+```
+
 
 
 
