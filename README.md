@@ -153,7 +153,7 @@ terraform init
 terraform apply -auto-approve
 ```
 
-🔍 Step 4: Verify Apache Web Server
+### 🔍 Step 4: Verify Apache Web Server
 
 Go to AWS EC2 console → find your instance.
 
@@ -169,7 +169,7 @@ http://<EC2_PUBLIC_IP>
 - Create a Linux user (`devuser`)
 - Set a secure password
 
-## 📄 create file `install_chef_user.sh`
+###  step1: 📄 create file `install_chef_user.sh`
 ```bash
 #!/bin/bash -xe
 
@@ -253,7 +253,7 @@ sudo su - devuser
 ```
 
 # 🔧 Task 4: Use a Cookbook to Manage a Package and Service (`httpd`)
-## 📄 create file `install_httpd.sh`
+## 📄 step1: create file `install_httpd.sh`
 ```bash
 #!/bin/bash -xe
 
