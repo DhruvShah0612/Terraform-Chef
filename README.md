@@ -399,12 +399,100 @@ Check if the file was created by the Chef recipe:
 sudo cat /root/hello_from_chef.txt
 ```
 Output:
-```pgsql
+```bash
 Hello, Chef is working in local mode!
 ```
 
+# 🧩 Task 6: Create a Cookbook with Multiple Recipes and Attributes
+## 📄 File: `install_multi_recipe.sh`
+This script installs Chef, creates a cookbook `multi_demo` with:
+- 📁 `recipes/install_apache.rb`: installs and enables Apache
+- 📁 `recipes/configure_index.rb`: writes content to `/var/www/html/index.html` using attributes
+- 📁 `attributes/default.rb`: defines the homepage message
 
+```bash
+#!/bin/bash -xe
 
+# Update & install packages
+apt update -y
+apt install -y curl unzip apache2-utils
 
+# Install Chef Infra Client
+curl -L https://omnitruck.chef.io/install.sh | bash
 
+# Create cookbook structure
+mkdir -p /root/cookbooks/multi_demo/{recipes,attributes}
+
+# Define an attribute
+cat <<EOF > /root/cookbooks/multi_demo/attributes/default.rb
+default['multi_demo']['homepage_message'] = 'Welcome to Dhruv\'s Chef Demo!'
+EOF
+
+# Recipe 1: Install Apache
+cat <<EOF > /root/cookbooks/multi_demo/recipes/install_apache.rb
+package 'apache2' do
+  action :install
+end
+
+service 'apache2' do
+  action [:enable, :start]
+end
+EOF
+
+# Recipe 2: Configure homepage using attribute
+cat <<EOF > /root/cookbooks/multi_demo/recipes/configure_index.rb
+file '/var/www/html/index.html' do
+  content node['multi_demo']['homepage_message']
+  owner 'root'
+  group 'root'
+  mode '0644'
+  action :create
+end
+EOF
+
+# Metadata
+cat <<EOF > /root/cookbooks/multi_demo/metadata.rb
+name 'multi_demo'
+maintainer 'Dhruv Shah'
+license 'All Rights Reserved'
+description 'Chef cookbook with multiple recipes and attributes'
+version '0.1.0'
+EOF
+
+# Chef Solo configuration
+cat <<EOF > /root/solo.rb
+cookbook_path ['/root/cookbooks']
+EOF
+
+# Execute both recipes
+chef-client -z -c /root/solo.rb -o 'multi_demo::install_apache,multi_demo::configure_index' --chef-license accept
+```
+
+## 📦 Step 2: add this `main.tf`
+```bash
+resource "aws_instance" "multi_recipe_server" {
+  ami                         = "ami-0f58b397bc5c1f2e8"
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.deployer.key_name
+  vpc_security_group_ids      = [aws_security_group.apache_sg.id]
+  associate_public_ip_address = true
+
+  user_data = file("install_multi_recipe.sh")
+
+  tags = {
+    Name = "Chef-Multi-Recipe-Server"
+  }
+}
+```
+```
+terraform apply -auto-approve
+```
+Verify via SSH
+ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
+cat /var/www/html/index.html
+
+Output:
+```
+Welcome to Dhruv's Chef Demo!
+```
 
