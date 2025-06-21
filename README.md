@@ -1,7 +1,7 @@
 # 🧪 Task 1: Install Chef Workstation on Local Machine (Windows)
 
 ## 📌 Objective
-Install [Chef Workstation](https://community.chef.io/downloads/tools/workstation?os=ubuntu) on your **local Windows machine** to use tools like `chef`, `knife`, `chef-solo`, etc., from your terminal.
+Install [Chef Workstation](https://community.chef.io/downloads/tools/workstation?os=ubuntu) on your **local Windows machine** to use tools like `chef`, `knife`, `chef-solo`, `chef-client`, etc., from your terminal.
 
 ---
 
