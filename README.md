@@ -250,3 +250,82 @@ sudo cat /etc/shadow | grep devuser
 # Switch to new user
 sudo su - devuser
 ```
+
+# 🔧 Task 4: Use a Cookbook to Manage a Package and Service (`httpd`)
+## 📄 create file `install_httpd.sh`
+```bash
+#!/bin/bash -xe
+
+# Update system and install dependencies
+apt update -y
+apt install -y curl git unzip
+
+# Install Chef Infra Client
+curl -L https://omnitruck.chef.io/install.sh | bash
+
+# Create cookbook directory
+mkdir -p /root/cookbooks/httpd_manage/recipes
+
+# Recipe: install and manage apache2
+cat <<EOF > /root/cookbooks/httpd_manage/recipes/manage_httpd.rb
+package 'apache2' do
+  action :install
+end
+
+service 'apache2' do
+  action [:enable, :start]
+end
+EOF
+
+# Metadata
+cat <<EOF > /root/cookbooks/httpd_manage/metadata.rb
+name 'httpd_manage'
+maintainer 'Your Name'
+license 'All Rights Reserved'
+description 'Manages apache2 package and service'
+version '0.1.0'
+EOF
+
+# Chef Solo Config
+cat <<EOF > /root/solo.rb
+cookbook_path ['/root/cookbooks']
+EOF
+
+# Run the recipe
+chef-client -z -c /root/solo.rb -o 'httpd_manage::manage_httpd' --chef-license accept
+```
+
+### 📦 Step 2: add this `main.tf`
+```bash
+resource "aws_instance" "httpd_server" {
+  ami                         = "ami-0f58b397bc5c1f2e8" # Ubuntu 20.04
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.deployer.key_name
+  vpc_security_group_ids      = [aws_security_group.apache_sg.id]
+  associate_public_ip_address = true
+
+  user_data = file("install_httpd.sh")
+
+  tags = {
+    Name = "Chef-HTTPD-Server"
+  }
+}
+```
+```
+terraform apply -auto-approve
+```
+
+🔍 Verify Apache 
+Go to AWS EC2 console → find your instance.
+Copy the Public IP.
+Visit in browser:
+```
+http://<EC2_PUBLIC_IP>
+```
+✅ You should see the Apache2 Ubuntu Default Page.
+
+
+
+
+
+
