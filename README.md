@@ -316,8 +316,11 @@ terraform apply -auto-approve
 ```
 
 🔍 Verify Apache 
+
 Go to AWS EC2 console → find your instance.
+
 Copy the Public IP.
+
 Visit in browser:
 ```
 http://<EC2_PUBLIC_IP>
