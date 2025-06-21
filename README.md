@@ -163,3 +163,90 @@ Visit in browser:
 http://<EC2_PUBLIC_IP>
 ```
 ✅ You should see the Apache2 Ubuntu Default Page.
+
+# 👤 Task 3: Write a Recipe to Create a User and Set Password Using Chef + Terraform
+- Create a Linux user (`devuser`)
+- Set a secure password
+
+## 📄 create file `install_chef_user.sh`
+```bash
+#!/bin/bash -xe
+
+# Install base tools
+apt update -y
+apt install -y curl git unzip openssl
+
+# Install Chef Infra Client
+curl -L https://omnitruck.chef.io/install.sh | bash
+
+# Create Chef cookbook for user management
+mkdir -p /root/cookbooks/user_setup/recipes
+
+# Generate hashed password (example: "admin@123")
+HASHED_PASS=$(openssl passwd -6 "admin@123")
+
+# Write the user creation recipe
+cat <<EOF > /root/cookbooks/user_setup/recipes/create_user.rb
+user 'devuser' do
+  comment 'DevOps User'
+  home '/home/devuser'
+  shell '/bin/bash'
+  password '${HASHED_PASS}'
+  manage_home true
+  action :create
+end
+EOF
+
+# Metadata for the cookbook
+cat <<EOF > /root/cookbooks/user_setup/metadata.rb
+name 'user_setup'
+maintainer 'Your Name'
+license 'All Rights Reserved'
+description 'Creates a user with Chef'
+version '0.1.0'
+EOF
+
+# Solo configuration file
+cat <<EOF > /root/solo.rb
+cookbook_path ['/root/cookbooks']
+EOF
+
+# Run the Chef recipe
+chef-client -z -c /root/solo.rb -o 'user_setup::create_user' --chef-license accept
+```
+
+### 📦 Step 2: add this `main.tf`
+```bash
+resource "aws_instance" "user_server" {
+  ami                         = "ami-0f58b397bc5c1f2e8" # Ubuntu 20.04
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.deployer.key_name
+  vpc_security_group_ids      = [aws_security_group.apache_sg.id]
+  associate_public_ip_address = true
+
+  user_data = file("install_chef_user.sh")
+
+  tags = {
+    Name = "Chef-User-Server"
+  }
+}
+```
+```bash
+terraform apply -auto-approve
+```
+
+### 🧪 Verify on EC2
+```bash
+ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
+```
+
+```bash
+# Confirm user exists
+getent passwd devuser
+
+# View password hash
+sudo cat /etc/shadow | grep devuser
+
+# Switch to new user
+sudo su - devuser
+```
