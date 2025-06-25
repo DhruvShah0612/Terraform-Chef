@@ -165,6 +165,17 @@ http://<EC2_PUBLIC_IP>
 ```
 ✅ You should see the Apache2 Ubuntu Default Page.
 
+### check manually:
+```
+ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
+sudo -i
+cat /var/log/user-data.log
+systemctl status apache2
+ls /root/cookbooks/apache_install/
+ls /root/cookbooks/apache_install/recipes/
+cat /root/cookbooks/apache_install/recipes/install_apache.rb
+```
+
 # 👤 Task 3: Write a Recipe to Create a User and Set Password Using Chef + Terraform
 - Create a Linux user (`devuser`)
 - Set a secure password
