@@ -167,6 +167,7 @@ terraform apply -auto-approve
 http://<EC2_PUBLIC_IP>
 ```
 ✅ You should see the Apache2 Ubuntu Default Page.
+!(apache)[task2_output.png]
 
 ### 🧪 Manual Verification
 ```bash
