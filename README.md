@@ -167,7 +167,8 @@ terraform apply -auto-approve
 http://<EC2_PUBLIC_IP>
 ```
 ✅ You should see the Apache2 Ubuntu Default Page.
-!(apache)[task2_output.png]
+
+![Task 2 Output](task2_output.png)
 
 ### 🧪 Manual Verification
 ```bash
@@ -349,6 +350,8 @@ http://<EC2_PUBLIC_IP>
 
 ✅ You should see the Apache2 Ubuntu Default Page.
 
+![Task 4 Output](task4_output.png)
+
 ---
 
 ## 🧪 Task 5: Run a Recipe Using chef-client in Local Mode (`--local-mode` / `-z`)
@@ -529,7 +532,8 @@ cat /var/www/html/index.html
 ```
 
 **Expected Output:**
-```
-Welcome to Dhruv's Chef Demo!
-```
+
+![Task 6 Output](task6_output.png)
+
+---
 
