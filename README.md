@@ -1,12 +1,15 @@
-# 🧪 Task 1: Install Chef Workstation on Local Machine (Windows)
+# 🧪 Chef + Terraform AWS Automation Tasks
 
-## 📌 Objective
-Install [Chef Workstation](https://community.chef.io/downloads/tools/workstation?os=ubuntu) on your **local Windows machine** to use tools like `chef`, `knife`, `chef-solo`, `chef-client`, etc., from your terminal.
+This repository demonstrates how to automate infrastructure and configuration management on AWS EC2 using **Terraform** and **Chef**. Each task is step-by-step and includes scripts, Terraform code, and verification instructions.
 
 ---
 
-## ✅ Step-by-Step Instructions
-### 🔧 Step 1: Download the Official Chef Workstation Installer
+## 🧰 Task 1: Install Chef Workstation on Local Machine (Windows)
+
+### 📌 Objective
+Install [Chef Workstation](https://community.chef.io/downloads/tools/workstation?os=ubuntu) on your **local Windows machine** to use tools like `chef`, `knife`, `chef-solo`, `chef-client`, etc., from your terminal.
+
+#### 🔧 Step 1: Download the Official Chef Workstation Installer
 
 1. Visit the official download page:  
    👉 https://community.chef.io/downloads/tools/workstation?os=ubuntu
@@ -19,7 +22,7 @@ Install [Chef Workstation](https://community.chef.io/downloads/tools/workstation
 
 ---
 
-### 🔧 Step 2: Install Chef Workstation
+#### 🔧 Step 2: Install Chef Workstation
 
 1. **Double-click** the downloaded `.msi` file.
 2. Follow the installer steps:
@@ -30,13 +33,13 @@ Install [Chef Workstation](https://community.chef.io/downloads/tools/workstation
 
 ---
 
-### 🔄 Step 3: Restart Terminal
+#### 🔄 Step 3: Restart Terminal
 
 - **Close and reopen** PowerShell or Git Bash.
 
 ---
 
-### 🔍 Step 4: Verify the Installation
+#### 🔍 Step 4: Verify the Installation
 
 Open **PowerShell** and run:
 
@@ -48,8 +51,9 @@ You should see output like:
 Chef Workstation version: 23.x.x
 Chef Infra Client version: 18.x.x
 ```
+--- 
 
-# 🛠️ Task 2: Launch EC2 & Install Apache via Chef Using Terraform
+## 🛠️ Task 2: Launch EC2 & Install Apache via Chef Using Terraform
 ### 🔧 Step 1: Create `install_chef_apache.sh`
 ```bash
 #!/bin/bash -xe
@@ -95,7 +99,7 @@ chef-client -z -c /root/solo.rb -o 'apache_install::install_apache' --chef-licen
 ```
 
 ### 📦 Step 2: update `main.tf`
-```bash
+```hcl
 provider "aws" {
   region  = "ap-south-1"
   profile = "default" # Uses AWS CLI credentials
@@ -148,25 +152,24 @@ resource "aws_instance" "apache_server" {
 ```
 
 ### ▶️ Step 3: Deploy Using Terraform
-```
+```bash
 terraform init
 terraform apply -auto-approve
 ```
 
 ### 🔍 Step 4: Verify Apache Web Server
 
-Go to AWS EC2 console → find your instance.
-
-Copy the Public IP.
-
-Visit in browser:
+1. Go to AWS EC2 console → find your instance.
+2. Copy the Public IP.
+3. Visit in browser:
+   
 ```
 http://<EC2_PUBLIC_IP>
 ```
 ✅ You should see the Apache2 Ubuntu Default Page.
 
-### check manually:
-```
+### 🧪 Manual Verification
+```bash
 ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
 sudo -i
 cat /var/log/user-data.log
@@ -175,8 +178,9 @@ ls /root/cookbooks/apache_install/
 ls /root/cookbooks/apache_install/recipes/
 cat /root/cookbooks/apache_install/recipes/install_apache.rb
 ```
+---
 
-# 👤 Task 3: Write a Recipe to Create a User and Set Password Using Chef + Terraform
+## 👤 Task 3: Write a Recipe to Create a User and Set Password Using Chef + Terraform
 - Create a Linux user (`devuser`)
 - Set a secure password
 
@@ -228,7 +232,7 @@ chef-client -z -c /root/solo.rb -o 'user_setup::create_user' --chef-license acce
 ```
 
 ### 📦 Step 2: add this `main.tf`
-```bash
+```hcl
 resource "aws_instance" "user_server" {
   ami                         = "ami-0f58b397bc5c1f2e8" # Ubuntu 20.04
   instance_type               = "t2.micro"
@@ -243,6 +247,7 @@ resource "aws_instance" "user_server" {
   }
 }
 ```
+Apply with:
 ```bash
 terraform apply -auto-approve
 ```
@@ -252,6 +257,7 @@ terraform apply -auto-approve
 ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
 ```
 
+Check user and password:
 ```bash
 # Confirm user exists
 getent passwd devuser
@@ -263,8 +269,10 @@ sudo cat /etc/shadow | grep devuser
 sudo su - devuser
 ```
 
-# 🔧 Task 4: Use a Cookbook to Manage a Package and Service (`httpd`)
-## 📄 step1: create file `install_httpd.sh`
+---
+
+## 🔧 Task 4: Use a Cookbook to Manage a Package and Service (`httpd`)
+### 📄 step1: create file `install_httpd.sh`
 ```bash
 #!/bin/bash -xe
 
@@ -308,7 +316,7 @@ chef-client -z -c /root/solo.rb -o 'httpd_manage::manage_httpd' --chef-license a
 ```
 
 ### 📦 Step 2: add this `main.tf`
-```bash
+```hcl
 resource "aws_instance" "httpd_server" {
   ami                         = "ami-0f58b397bc5c1f2e8" # Ubuntu 20.04
   instance_type               = "t2.micro"
@@ -323,24 +331,27 @@ resource "aws_instance" "httpd_server" {
   }
 }
 ```
+Apply with:
 ```
 terraform apply -auto-approve
 ```
 
-🔍 Verify Apache 
+### 🔍 Verify Apache
 
-Go to AWS EC2 console → find your instance.
-
-Copy the Public IP.
-
-Visit in browser:
+1. Go to AWS EC2 console → find your instance.
+2. Copy the Public IP.
+3. Visit in browser:
+   
 ```
 http://<EC2_PUBLIC_IP>
 ```
+
 ✅ You should see the Apache2 Ubuntu Default Page.
 
-# 🧪 Task 5: Run a Recipe Using chef-client in Local Mode (`--local-mode` / `-z`)
-## 📄 create file `install_local_mode.sh`
+---
+
+## 🧪 Task 5: Run a Recipe Using chef-client in Local Mode (`--local-mode` / `-z`)
+### 📄 Step 1: Create `install_local_mode.sh`
 ```bash
 #!/bin/bash -xe
 
@@ -382,8 +393,9 @@ EOF
 # Execute the recipe with chef-client in local mode
 chef-client -z -c /root/solo.rb -o 'local_mode::hello_file' --chef-license accept
 ```
+
 ### 📦 Step 2: add this `main.tf`
-```bash
+```hcl
 resource "aws_instance" "local_mode_server" {
   ami                         = "ami-0f58b397bc5c1f2e8" # Ubuntu 20.04
   instance_type               = "t2.micro"
@@ -398,24 +410,31 @@ resource "aws_instance" "local_mode_server" {
   }
 }
 ```
+
+Apply with:
 ```bash
 terraform apply -auto-approve
 ```
-🧪 Verify on EC2
+
+### 🧪 Verify on EC2
 ```bash
 ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
 ```
+
 Check if the file was created by the Chef recipe:
 ```bash
 sudo cat /root/hello_from_chef.txt
 ```
+
 Output:
 ```bash
 Hello, Chef is working in local mode!
 ```
 
-# 🧩 Task 6: Create a Cookbook with Multiple Recipes and Attributes
-## 📄 File: `install_multi_recipe.sh`
+---
+
+## 🧩 Task 6: Create a Cookbook with Multiple Recipes and Attributes
+### 📄 Step 1: Create `install_multi_recipe.sh`
 This script installs Chef, creates a cookbook `multi_demo` with:
 - 📁 `recipes/install_apache.rb`: installs and enables Apache
 - 📁 `recipes/configure_index.rb`: writes content to `/var/www/html/index.html` using attributes
@@ -479,8 +498,8 @@ EOF
 chef-client -z -c /root/solo.rb -o 'multi_demo::install_apache,multi_demo::configure_index' --chef-license accept
 ```
 
-## 📦 Step 2: add this `main.tf`
-```bash
+### 📦 Step 2: add this `main.tf`
+```hcl
 resource "aws_instance" "multi_recipe_server" {
   ami                         = "ami-0f58b397bc5c1f2e8"
   instance_type               = "t2.micro"
@@ -495,14 +514,20 @@ resource "aws_instance" "multi_recipe_server" {
   }
 }
 ```
-```
+Apply with:
+```bash
 terraform apply -auto-approve
 ```
-Verify via SSH
+
+## 🧪 Verify on EC2
+
+SSH into your instance:
+```bash
 ssh -i ~/.ssh/id_rsa ubuntu@<EC2_PUBLIC_IP>
 cat /var/www/html/index.html
+```
 
-Output:
+**Expected Output:**
 ```
 Welcome to Dhruv's Chef Demo!
 ```
